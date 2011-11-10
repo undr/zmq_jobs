@@ -4,9 +4,10 @@ module ZmqJobs
       attr_reader :options
       class << self
         def cmd args
+          count = args[2].to_i || 0
           options = {
             'hosts' => [args[0]],
-            'ports' => (args[1]..(args[2] || args[1])).to_a
+            'ports' => (args[1].to_i..(args[1].to_i + count)).to_a
           }
           options['iothreads'] = args[3] if args[3]
           start(options)
