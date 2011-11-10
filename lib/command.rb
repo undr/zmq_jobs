@@ -1,6 +1,7 @@
 require 'optparse'
 require 'daemons'
 require 'yaml'
+require 'erb'
 
 module ZmqJobs
   class Command
@@ -83,7 +84,7 @@ module ZmqJobs
     end
     
     def read_config_file
-      YAML.load_file(File.expand_path(config_file, execute_dir))
+      YAML.load(ERB.new(File.new(File.expand_path(config_file, execute_dir)).read).result)
     end
     
     def daemon_config name

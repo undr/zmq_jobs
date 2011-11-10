@@ -8,7 +8,7 @@ broker:
   iothreads: 1
   frontend:
     hosts: ['127.0.0.1']
-    ports: [2200, 2201, 2202]
+    ports: [<%= (2200..2202).to_a.join(', ') %>]
   backend:
     host: '127.0.0.1'
     port: 2203
