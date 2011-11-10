@@ -7,6 +7,14 @@ module ZmqJobs
     attr_reader :daemonize, :monitor, :config_file, :execute_dir, :options
     DEVICES = {'broker' => Broker, 'balancer' => Balancer}
     
+    def self.define_properties options
+      options.each do |property, value|
+        define_method(property.to_sym) do |*args|
+          value
+        end
+      end
+    end
+    
     def initialize(args)
       @demonize = false
       @monitor = false
@@ -14,8 +22,6 @@ module ZmqJobs
       @pid_dir = './tmp'
       @config_file = './config/zmq_jobs.yml'
       @options = read_config_file
-      
-      self.init if self.respond_to?(:init)
       
       if args.empty?
         puts opts_parser
@@ -26,9 +32,7 @@ module ZmqJobs
     end
     
     def start
-      Kernel.require File.expand_path './zmq_jobs/devices/broker', File.dirname(__FILE__)
-      Kernel.require File.expand_path './zmq_jobs/devices/balancer', File.dirname(__FILE__)
-      start_daemon(name, daemon_config(name))
+      start_daemon(type, daemon_config(type))
     end
     
     protected
@@ -47,7 +51,7 @@ module ZmqJobs
         opts.on('-m', '--monitor', 'Start monitor process.') do
           @monitor = true
         end
-        opts.on('-d', '--daemonize', "Daemonize the #{name} process") do
+        opts.on('-d', '--daemonize', "Daemonize the #{type} process") do
           @daemonize = true
         end
         opts.on('-c CONFIG', '--config CONFIG', "Use config file, default: #{config_file}") do |config|
@@ -62,8 +66,7 @@ module ZmqJobs
     end
   
     def start_daemon daemon_name, config
-      return config unless config
-      
+      return false unless config
       Daemons.run_proc(
         daemon_name, 
         {
@@ -83,53 +86,37 @@ module ZmqJobs
       YAML.load_file(File.expand_path(config_file, execute_dir))
     end
     
-    def name
-      type
-    end
-    
     def daemon_config name
       options[name] || (
         ::ZmqJobs.logger.info("#{type.capitalize} '#{name}' not found in config file") and 
           return false
-      ).tap{|h|h.symbolize_keys}
-    end
-    
-    def daemon_class name
-      ActiveSupport::Inflector.constantize(daemon_classname(name))
-    end
-    
-    def daemon_classname name
-      ActiveSupport::Inflector.camelize(name, true)
+      )
     end
   end
   
   class BrokerCommand < Command
-    def type
-      'broker'
-    end
-    
-    def daemon_class name
-      Broker
-    end
+    define_properties :type => 'broker', :daemon_class => Broker
+  end
+  
+  class BalancerCommand < Command
+    define_properties :type => 'balancer', :daemon_class => Balancer
   end
   
   class WorkerCommand < Command
-    def type
-      'worker'
-    end
+    define_properties :type => 'worker'
     
     def start
       raise ArgumentError.new(
-        'You have to pass workers list into command (Use -w or --workers options)'
-      ) if !@workers || @workers.empty?
+        'You do not have any workers to start'
+      ) if workers_to_start.size < 1
+      
       raise ArgumentError.new(
         'You can not start more then one worker without -d option'
-      ) if @workers.size > 1 && !daemonize
+      ) if workers_to_start.size > 1 && !daemonize
       
-      success = @workers.map{|worker|
-        config = daemon_config(worker)
-        preload_worker_class(daemon_classname(worker)) if config
-        config ? start_daemon(worker, config) : false
+      success = workers_to_start.map{|worker|
+        preload_worker_class(daemon_classname(worker))
+        start_daemon(worker, daemon_config(worker))
       }.inject(&:'&&')
       
       ::ZmqJobs.logger.info('One or more workers do not started') unless success
@@ -154,8 +141,28 @@ module ZmqJobs
     def daemon_config name
       options['workers'][name] || (
         ::ZmqJobs.logger.info("#{type.capitalize} '#{name}' not found in config file") and 
-          return false
+          return nil
       )
+    end
+    
+    def daemon_class name=nil
+      ActiveSupport::Inflector.constantize(daemon_classname(name))
+    end
+    
+    def daemon_classname name
+      ActiveSupport::Inflector.camelize(name, true)
+    end
+    
+    def all_workers
+      options['workers'].keys
+    end
+    
+    def workers_to_start
+      @workers_to_start ||= if !@workers || @workers.empty?
+        all_workers
+      else
+        @workers.select{|w|all_workers.includes?(w)}
+      end
     end
   end
 end

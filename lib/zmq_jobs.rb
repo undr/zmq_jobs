@@ -7,19 +7,14 @@ require 'active_support/core_ext/hash/keys'
 require 'ffi-rzmq'
 require 'logger'
 
-require 'pp'
-
 module ZmqJobs
   extend self
   extend ActiveSupport::Autoload
   
   autoload_under 'devices' do
     autoload :Device
-    
-    eager_autoload do
-      autoload :Balancer
-      autoload :Broker
-    end
+    autoload :Balancer
+    autoload :Broker
   end
   
   module Worker
