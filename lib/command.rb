@@ -17,7 +17,8 @@ module ZmqJobs
     end
     
     def initialize(args)
-      @demonize = false
+      raise 'You can not create instance of abstract class' if self.class == Command
+      @daemonize = false
       @monitor = false
       @execute_dir = Dir.pwd
       @pid_dir = './tmp'
@@ -89,7 +90,7 @@ module ZmqJobs
     
     def daemon_config name
       options[name] || (
-        ::ZmqJobs.logger.info("#{type.capitalize} '#{name}' not found in config file") and 
+        ::ZmqJobs.logger.info("#{type.capitalize} '#{name}' not found in config file") and
           return false
       )
     end
