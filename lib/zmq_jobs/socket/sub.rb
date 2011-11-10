@@ -9,8 +9,9 @@ module ZmqJobs
       end
 
       def create_link url
-        ::ZmqJobs.logger.info "Subscriber have started at #{url}"
-        socket.connect(url)
+        socket.connect(url).tap do
+          ::ZmqJobs.logger.info "Subscriber have started at #{url}"
+        end
       end
 
       protected
