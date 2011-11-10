@@ -55,7 +55,7 @@ module ZmqJobs
     
     def backend_options
       options['backend'].
-        assert_valid_keys('host', 'port')
+        assert_valid_keys('hosts', 'ports', 'linger')
     end
     
     def logger

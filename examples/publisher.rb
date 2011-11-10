@@ -8,8 +8,8 @@ Signal.trap('INT') do
 end
 
 publisher = ZmqJobs::Socket::Pub.new(
-  'host' => '127.0.0.1',
-  'port' => 2200
+  'hosts' => '127.0.0.1',
+  'ports' => 2200
 )
 publisher.run do |socket|
   msg = message.call(index)

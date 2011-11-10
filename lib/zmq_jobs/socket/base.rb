@@ -8,7 +8,7 @@ module ZmqJobs
         iothreads = options['iothreads'] ? options['iothreads'].to_i : 1
         @context = options.delete('context') || ZMQ::Context.create(iothreads)
         raise Error.new('Can not create context') unless @context
-        @options = default_options.merge(options)
+        @options = build_default_options.merge(options)
         @socket = @context.socket(ZMQ::PUB)
         @running = false
       end
@@ -82,11 +82,17 @@ module ZmqJobs
         options['ports'].is_a?(Array) ? options['ports'] : [options['ports']]
       end
 
-      def default_options
+      def build_default_options
         {
+          'linger' => 0,
           'hosts' => '*',
           'ports' => 2200
-        }
+        }.merge(default_options).
+        delete_if{|k,v|v.nil?}
+      end
+      
+      def default_options
+        {}
       end
     end
   end

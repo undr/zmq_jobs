@@ -17,10 +17,9 @@ module ZmqJobs
       protected
       def default_options
         {
-          'linger' => 0,
           'subscribe' => '',
-          'hosts' => ['127.0.0.1'],
-          'ports' => [2200]
+          'hosts' => '127.0.0.1',
+          'ports' => 2200
         }
       end
     end

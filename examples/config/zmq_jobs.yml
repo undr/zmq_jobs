@@ -14,5 +14,5 @@ broker:
     hosts: ['127.0.0.1']
     ports: [<%= (2200..2202).to_a.join(', ') %>]
   backend:
-    host: '127.0.0.1'
-    port: 2203
+    hosts: '127.0.0.1'
+    ports: 2203

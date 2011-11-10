@@ -4,6 +4,7 @@ module ZmqJobs
       def initialize options={}
         super(options)
         @socket = @context.socket(ZMQ::PUB)
+        assert(socket.setsockopt(ZMQ::LINGER, self.options['linger'])) if self.options['linger']
       end
 
       def create_link url
@@ -15,17 +16,16 @@ module ZmqJobs
 
       private
       def hosts
-        options['host'].is_a?(Array) ? [options['host'].first] : [options['host']]
+        options['hosts'].is_a?(Array) ? [options['hosts'].first] : [options['hosts']]
       end
 
       def ports
-        options['port'].is_a?(Array) ? [options['port'].first] : [options['port']]
+        options['ports'].is_a?(Array) ? [options['ports'].first] : [options['ports']]
       end
 
       def default_options
         {
-          'host' => '*',
-          'port' => 2200
+          'linger' => nil
         }
       end
     end
