@@ -1,4 +1,7 @@
+*.gem
 .bundle
+Gemfile.lock
+pkg/*
 log/*.log
 tmp/*
 tmp/**/*
@@ -6,10 +9,7 @@ nbproject/*
 nbproject/**/*
 .idea/*
 .idea/**/*
-config/*
 .DS_Store
 *.tmproj
-.svn
-.metrics
 .rvmrc
 Icon*

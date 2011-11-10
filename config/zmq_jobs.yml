@@ -1,0 +1,14 @@
+workers_dir: ./examples/workers
+workers:
+  test_worker:
+    iothreads: 1
+    hosts: ['127.0.0.1']
+    ports: [2203]
+broker:
+  iothreads: 1
+  frontend:
+    hosts: ['127.0.0.1']
+    ports: [2200, 2201, 2202]
+  backend:
+    host: '127.0.0.1'
+    port: 2203
