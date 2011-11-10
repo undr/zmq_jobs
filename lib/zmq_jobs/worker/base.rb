@@ -35,11 +35,10 @@ module ZmqJobs
             execute_job message
           end
         end
-        
-        logger.info "#{self.class} has stopped"
       end
       
       def stop
+        logger.info "Exiting..." 
         subscriber.stop
         #subscriber.terminate
       end

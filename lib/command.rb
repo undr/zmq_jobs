@@ -107,9 +107,7 @@ module ZmqJobs
     define_properties :type => 'worker'
     
     def start
-      raise ArgumentError.new(
-        'You do not have any workers to start'
-      ) if workers_to_start.size < 1
+      ::ZmqJobs.logger.info('You do not have any workers to start') if workers_to_start.size < 1
       
       raise ArgumentError.new(
         'You can not start more then one worker without -d option'
@@ -134,7 +132,7 @@ module ZmqJobs
     def opts_parser
       opts_parser_builder do |opts|
         opts.on('-w', '--workers LIST', 'Workers which have to run.') do |workers|
-          @workers = workers.split(' ')
+          @workers = workers.split(',')
         end
       end
     end
@@ -158,11 +156,15 @@ module ZmqJobs
       options['workers'].keys
     end
     
+    def input_workers
+      @workers
+    end
+    
     def workers_to_start
-      @workers_to_start ||= if !@workers || @workers.empty?
+      @workers_to_start ||= if !input_workers || input_workers.empty?
         all_workers
       else
-        @workers.select{|w|all_workers.includes?(w)}
+        input_workers.select{|w|all_workers.include?(w)}
       end
     end
   end

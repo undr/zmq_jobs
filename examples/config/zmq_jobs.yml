@@ -1,6 +1,6 @@
 workers_dir: ./workers
 workers:
-  defoult:
+  default:
     iothreads: 1
     hosts: ['127.0.0.1']
     ports: [2203]
