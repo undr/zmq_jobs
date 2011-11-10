@@ -5,7 +5,9 @@ module ZmqJobs
       attr_reader :socket, :options
 
       def initialize options={}
-        @context = options.delete('context') || ZMQ::Context.create(options['iothreads'] || 1)
+        iothreads = options['iothreads'] ? options['iothreads'].to_i : 1
+        @context = options.delete('context') || ZMQ::Context.create(iothreads)
+        raise Error.new('Can not create context') unless @context
         @options = default_options.merge(options)
         @socket = @context.socket(ZMQ::PUB)
         @running = false
@@ -34,6 +36,7 @@ module ZmqJobs
           yield socket
           break unless running?
         end
+        
         self
       end
 

@@ -6,7 +6,7 @@ module ZmqJobs
         def cmd args
           options = {
             'hosts' => [args[0]],
-            'posts' => (args[1]..(args[2] || args[1])).to_a
+            'ports' => (args[1]..(args[2] || args[1])).to_a
           }
           options['iothreads'] = args[3] if args[3]
           start(options)
