@@ -8,6 +8,7 @@ module ZmqJobs
 
       def create_link url
         socket.bind(url).tap do
+          sleep 1
           ::ZmqJobs.logger.info "Publisher have started at #{url}"
         end
       end
