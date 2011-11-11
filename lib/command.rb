@@ -122,7 +122,7 @@ module ZmqJobs
       success = workers_to_start.map{|worker|
         preload_worker_class(daemon_classname(worker))
         start_daemon(worker, daemon_config(worker))
-      }.inject(&:'&&')
+      }.inject(true){|result, value|result &&= value}
       
       ::ZmqJobs.logger.info('One or more workers do not started') unless success
     end
