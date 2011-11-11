@@ -6,7 +6,8 @@ require 'erb'
 module ZmqJobs
   class Command
     attr_reader :daemonize, :monitor, :config_file, :execute_dir, :options
-    DEVICES = {'broker' => Broker, 'balancer' => Balancer}
+    
+    ALLOW_COMMANDS = %W{start stop restart}
     
     def self.define_properties options
       options.each do |property, value|
@@ -25,7 +26,7 @@ module ZmqJobs
       @config_file = './config/zmq_jobs.yml'
       @options = read_config_file
       
-      if args.empty?
+      if args.empty? || !ALLOW_COMMANDS.include?(args.first)
         puts opts_parser
         exit 1
       else
@@ -64,7 +65,7 @@ module ZmqJobs
     end
     
     def opts_banner
-      "Usage: #{type} <start|stop|restart> [options]"
+      "Usage: #{type} <#{ALLOW_COMMANDS.join('|')}> [options]"
     end
   
     def start_daemon daemon_name, config
