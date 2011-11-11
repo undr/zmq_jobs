@@ -2,9 +2,11 @@ require 'spec_helper.rb'
 
 class TestWorker
 end
+class AnotherTestWorker
+end
 
 describe ZmqJobs::Command do
-  describe 'new' do
+  describe '.new' do
     let(:command) do
       ZmqJobs::Command.new(['start'])
     end
@@ -15,7 +17,7 @@ describe ZmqJobs::Command do
   end
 end
 
-shared_examples_for :new_common_options do
+shared_examples_for 'initialization' do
   let(:daemon_options){{:key => :value}}
   
   context 'without options' do
@@ -56,47 +58,158 @@ shared_examples_for :new_common_options do
   end
 end
 
+shared_examples_for 'daemonization' do
+  let(:args){['start']}
+  let(:daemon_options){{:key => :value}}
+  
+  specify{command.start}
+end
+
 describe ZmqJobs::BrokerCommand do
-  describe 'new' do
-    let(:command) do
-      ZmqJobs::BrokerCommand.any_instance.stub(:read_config_file => options, :start => true)
-      ZmqJobs::BrokerCommand.new(args)
+  before do
+    ZmqJobs::BrokerCommand.any_instance.stub(:read_config_file => options)
+  end
+  
+  let(:command){ZmqJobs::BrokerCommand.new(args)}
+  let(:type){'broker'}
+  let(:daemon){type}
+  let(:options){{daemon => daemon_options}}
+  
+  describe '.new' do
+    before do
+      ZmqJobs::BrokerCommand.any_instance.stub(:start => true)
     end
-    let(:type){'broker'}
-    let(:daemon){type}
-    let(:classname){ZmqJobs::Broker}
-    let(:options){{daemon => daemon_options}}
     
-    it_behaves_like :new_common_options
+    let(:classname){ZmqJobs::Broker}
+    
+    it_behaves_like 'initialization'
+  end
+  
+  describe '#start' do
+    before do
+      ZmqJobs::BrokerCommand.any_instance.should_receive(:start_daemon).with(daemon, daemon_options).and_return(true)
+    end
+    
+    it_behaves_like 'daemonization'
   end
 end
 
 describe ZmqJobs::BalancerCommand do
-  describe 'new' do
-    let(:command) do
-      ZmqJobs::BalancerCommand.any_instance.stub(:read_config_file => options, :start => true)
-      ZmqJobs::BalancerCommand.new(args)
+  before do
+    ZmqJobs::BalancerCommand.any_instance.stub(:read_config_file => options)
+  end
+  
+  let(:command){ZmqJobs::BalancerCommand.new(args)}
+  let(:type){'balancer'}
+  let(:daemon){type}
+  let(:options){{daemon => daemon_options}}
+  
+  describe '.new' do
+    before do
+      ZmqJobs::BalancerCommand.any_instance.stub(:start => true)
     end
-    let(:type){'balancer'}
-    let(:daemon){type}
-    let(:classname){ZmqJobs::Balancer}
-    let(:options){{daemon => daemon_options}}
     
-    it_behaves_like :new_common_options
+    let(:classname){ZmqJobs::Balancer}
+    
+    it_behaves_like 'initialization'
+  end
+  
+  describe '#start' do
+    before do
+      ZmqJobs::BalancerCommand.any_instance.should_receive(:start_daemon).with(daemon, daemon_options).and_return(true)
+    end
+    
+    it_behaves_like 'daemonization'
   end
 end
 
 describe ZmqJobs::WorkerCommand do
-  describe 'new' do
-    let(:command) do
-      ZmqJobs::WorkerCommand.any_instance.stub(:read_config_file => options, :start => true)
-      ZmqJobs::WorkerCommand.new(args)
+  before do
+    ZmqJobs::WorkerCommand.any_instance.stub(:read_config_file => options)
+  end
+  
+  let(:command){ZmqJobs::WorkerCommand.new(args)}
+  let(:type){'worker'}
+  
+  describe '.new' do
+    before do
+      ZmqJobs::WorkerCommand.any_instance.stub(:start => true)
     end
-    let(:type){'worker'}
+    
     let(:daemon){'test_worker'}
     let(:classname){TestWorker}
     let(:options){{'workers' => {daemon => daemon_options}}}
     
-    it_behaves_like :new_common_options
+    it_behaves_like 'initialization'
+    
+    context 'test workers initialization' do
+      let(:daemon_options){{:key => :value}}
+      context do
+        let(:workers){%W{worker1 worker2 worker3}}
+        let(:args){['start']}
+
+        specify{command.send(:input_workers).should == nil}
+        specify{command.send(:all_workers).should == ['test_worker']}      
+        specify{command.send(:workers_to_start).should == ['test_worker']}      
+      end
+
+      context do
+        let(:workers){%W{worker1 worker2 worker3}}
+        let(:args){['start', '-w', workers.join(',')]}
+
+        specify{command.send(:input_workers).should == workers}
+        specify{command.send(:all_workers).should == ['test_worker']}      
+        specify{command.send(:workers_to_start).should == []}      
+      end
+      
+      context do
+        let(:workers){%W{worker1 worker2 worker3 test_worker}}
+        let(:args){['start', '-w', workers.join(',')]}
+      
+        specify{command.send(:input_workers).should == workers}
+        specify{command.send(:all_workers).should == ['test_worker']}      
+        specify{command.send(:workers_to_start).should == ['test_worker']}
+      end 
+    end
+  end
+  
+  describe '#start' do
+    before do
+      ZmqJobs::WorkerCommand.any_instance.stub(:workers_to_start => workers)
+      ZmqJobs::WorkerCommand.any_instance.stub(:preload_worker_class => true)
+    end
+    
+    let(:args){['start', '-d']}
+    let(:first_daemon_options){{:key => :first}}
+    
+    context 'daemonization for one worker' do
+      let(:workers){%W{test_worker}}
+      let(:options){{'workers' => {workers.first => first_daemon_options}}}
+      
+      before do
+        command.should_receive(:start_daemon).
+          with(workers.first, first_daemon_options).and_return(true)
+      end
+      
+      specify{command.start}
+    end
+    
+    context 'daemonization for many workers' do
+      let(:workers){%W{test_worker another_test_worker}}
+      let(:last_daemon_options){{:key => :last}}
+      let(:options){{'workers' => {
+        workers.first => first_daemon_options,
+        workers.last => last_daemon_options
+      }}}
+      
+      before do
+        command.should_receive(:start_daemon).
+          with(workers.first, first_daemon_options).and_return(true)
+        command.should_receive(:start_daemon).
+          with(workers.last, last_daemon_options).and_return(true)
+      end
+      
+      specify{command.start}
+    end
   end
 end
