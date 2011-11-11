@@ -5,11 +5,10 @@ module ZmqJobs
       class << self
         def cmd args
           count = args[2].to_i || 0
-          options = {
-            'hosts' => [args[0]],
-            'ports' => (args[1].to_i..(args[1].to_i + count)).to_a
-          }
-          options['iothreads'] = args[3] if args[3]
+          options = {}
+          options['hosts'] = args[0] if args[0]
+          options['ports'] = (args[1].to_i..(args[1].to_i + count)).to_a if args[1]
+          options['iothreads'] = args[3].to_i if args[3]
           start(options)
         end
         
