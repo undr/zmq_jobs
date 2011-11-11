@@ -85,7 +85,12 @@ module ZmqJobs
     end
     
     def read_config_file
-      YAML.load(ERB.new(File.new(File.expand_path(config_file, execute_dir)).read).result)
+      full_path = File.expand_path(config_file, execute_dir)
+      raise(
+        "Config file not found in '#{full_path}'. Create config file or define its with -c option"
+      ) unless File.exists?(full_path)
+      
+      YAML.load(ERB.new(File.new(full_path).read).result)
     end
     
     def daemon_config name
@@ -122,6 +127,10 @@ module ZmqJobs
       ::ZmqJobs.logger.info('One or more workers do not started') unless success
     end
     
+    def daemon_class name=nil
+      ActiveSupport::Inflector.constantize(daemon_classname(name))
+    end
+    
     protected
     def preload_worker_class classname
       worker_class_dir = File.expand_path(options['workers_dir'], execute_dir)
@@ -143,10 +152,6 @@ module ZmqJobs
         ::ZmqJobs.logger.info("#{type.capitalize} '#{name}' not found in config file") and 
           return nil
       )
-    end
-    
-    def daemon_class name=nil
-      ActiveSupport::Inflector.constantize(daemon_classname(name))
     end
     
     def daemon_classname name
