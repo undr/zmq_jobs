@@ -27,12 +27,8 @@ module ZmqJobs
         logger.info "#{self.class} is starting ..."
         
         subscriber.run do |socket|
-          message = ''
-          rc = socket.recv_string(message, ZMQ::NOBLOCK)
-          if ZMQ::Util.resultcode_ok?(rc)
-            #message = BSON.deserialize(bson)
-            execute_job message
-          end
+          message = socket.recv(message)
+          execute_job message if message
         end
       end
       
@@ -44,6 +40,8 @@ module ZmqJobs
       
       def execute_job message
         execute(message)
+      rescue => e
+        logger.warn format_exception_message(e)
       end
       
       def subscriber
@@ -52,6 +50,13 @@ module ZmqJobs
       
       def logger
         ::ZmqJobs.logger
+      end
+      
+      def format_exception_message exception
+<<-MESSAGE
+Execution error: #{exception} - #{exception.message}
+  #{exception.backtrace[0..10].join("\n  ")}
+MESSAGE
       end
     end
   end

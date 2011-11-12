@@ -1,7 +1,7 @@
 require 'spec_helper.rb'
 
 TestWorker = Class.new(ZmqJobs::Worker::Base)
-
+ZmqJobs.logger = Logger.new('/dev/null')
 describe ZmqJobs::Worker::Base do
   describe '.cmd' do
     before do
@@ -10,7 +10,6 @@ describe ZmqJobs::Worker::Base do
     end
     
     subject{TestWorker.cmd(options)}
-    
     
     context 'without arguments' do
       let(:options){[]}
@@ -48,7 +47,18 @@ describe ZmqJobs::Worker::Base do
     end
   end
   
-  describe '.new' do
+  describe '.start' do
+    before do
+      subscriber = mock(:subscriber)
+      subscriber.should_receive(:run).and_yield(worker).and_return(true)
+      worker.stub(:subscriber => subscriber)
+      worker.stub(:recv => 'Message')
+      worker.should_receive(:execute).with('Message').and_return(true)
+      ZMQ::Util.stub(:resultcode_ok? => true)
+    end
     
+    let(:worker){TestWorker.new}
+    
+    specify{worker.start.should be_true}
   end
 end
