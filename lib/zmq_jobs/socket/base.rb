@@ -1,6 +1,6 @@
 module ZmqJobs
   module Socket
-    class Error < RuntimeError;end
+    Error = Class.new(StandardError)
     class Base
       attr_reader :socket, :options
       
