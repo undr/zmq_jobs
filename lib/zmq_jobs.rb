@@ -3,7 +3,6 @@ require 'bundler'
 Bundler.setup :default, (ENV['RACK_ENV'] || 'development')
 require 'yaml'
 require 'active_support'
-require 'active_support/core_ext/hash/keys'
 require 'ffi-rzmq'
 require 'logger'
 
