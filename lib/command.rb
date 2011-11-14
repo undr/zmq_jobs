@@ -134,16 +134,20 @@ module ZmqJobs
     
     protected
     def preload_worker_class classname
+      filename = ActiveSupport::Inflector.underscore(classname)
       worker_class_dir = File.expand_path(options['workers_dir'], execute_dir)
       Kernel.require(
-        "#{worker_class_dir}/#{ActiveSupport::Inflector.underscore(classname)}"
-      ) unless Kernel.const_defined?(classname)
+        "#{worker_class_dir}/#{filename}"
+      ) unless Kernel.const_defined?(classname) && !File.exists?("#{worker_class_dir}/#{filename}.rb")
     end
     
     def opts_parser
       opts_parser_builder do |opts|
         opts.on('-w', '--workers LIST', 'Workers which have to run.') do |workers|
           @workers = workers.split(',')
+        end
+        opts.on('-r REQUIRE_FILE', '--require REQUIRE_FILE', "Require this file before start daemon") do |require_file|
+          @require = require_file
         end
       end
     end
