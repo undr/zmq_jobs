@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'bundler'
-Bundler.setup :default, (ENV['RACK_ENV'] || 'development')
+Bundler.setup :default
 require 'yaml'
 require 'active_support'
 require 'ffi-rzmq'
@@ -49,3 +49,5 @@ module ZmqJobs
 end
 
 require 'command'
+
+require 'rails/railties' if defined?(Rails)
