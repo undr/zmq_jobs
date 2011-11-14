@@ -1,6 +1,8 @@
 module ZmqJobs
   module Worker
     class Base
+      include ActiveSupport::Callbacks
+      define_callbacks :start, :stop, :execute
       attr_reader :options
       class << self
         def cmd args
@@ -25,23 +27,29 @@ module ZmqJobs
         trap('TERM'){stop}
         trap('INT'){stop}
         logger.info "#{self.class} is starting ..."
-        
-        subscriber.run do |socket|
-          message = socket.recv(message)
-          execute_job message if message
+        run_callbacks :start do
+          subscriber.run do |socket|
+            message = socket.recv(message)
+            execute_job message if message
+          end
         end
       end
       
       def stop
-        logger.info "Exiting..." 
-        subscriber.stop
-        #subscriber.terminate
+        logger.info "Exiting..."
+        run_callbacks :stop do
+          subscriber.stop
+          #subscriber.terminate
+        end
       end
       
       def execute_job message
-        execute(message)
+        run_callbacks :execute do
+          execute(message)
+        end
       rescue => e
         logger.warn format_exception_message(e)
+        raise e
       end
       
       def subscriber
