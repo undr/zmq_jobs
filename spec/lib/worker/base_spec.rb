@@ -54,7 +54,6 @@ describe ZmqJobs::Worker::Base do
       worker.stub(:subscriber => subscriber)
       worker.stub(:recv => 'Message')
       worker.should_receive(:execute).with('Message').and_return(true)
-      ZMQ::Util.stub(:resultcode_ok? => true)
     end
     
     let(:worker){TestWorker.new}
