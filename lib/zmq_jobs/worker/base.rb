@@ -29,7 +29,7 @@ module ZmqJobs
         logger.info "#{self.class} is starting ..."
         run_callbacks :start do
           subscriber.run do |socket|
-            message = socket.recv(message)
+            message = socket.recv
             execute_job message if message
           end
         end
