@@ -24,8 +24,8 @@ module ZmqJobs
       end
       
       def start
-        trap('TERM'){stop}
-        trap('INT'){stop}
+        trap('TERM'){stop;Process.exit}
+        trap('INT'){stop;Process.exit}
         logger.info "#{self.class} is starting ..."
         run_callbacks :start do
           subscriber.run do |socket|

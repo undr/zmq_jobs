@@ -22,6 +22,7 @@ module ZmqJobs
       @daemonize = false
       @monitor = false
       @execute_dir = Dir.pwd
+      @log_dir = './log'
       @pid_dir = './tmp'
       @config_file = './config/zmq_jobs.yml'
       @options = read_config_file
@@ -80,6 +81,7 @@ module ZmqJobs
           :ontop => !daemonize
         }
       ) do
+        ZmqJobs.logger = Logger.new(File.expand_path("../../#{@log_dir}/#{daemon_name}.log", __FILE__)) if daemonize
         daemon_class(daemon_name).new(config).start
       end
       true
