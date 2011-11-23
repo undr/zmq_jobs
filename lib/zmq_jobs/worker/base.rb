@@ -15,9 +15,6 @@ module ZmqJobs
         end
         
         def start options
-          logger.debug 'Debug mode' if debug?
-          logger.debug 'Worker is starting' if debug?
-          
           new(options).start
         end
       end
@@ -31,6 +28,8 @@ module ZmqJobs
         trap('TERM'){stop;Process.exit}
         trap('INT'){stop;Process.exit}
         logger.info "#{self.class} is starting ..."
+        logger.debug 'Debug mode' if debug?
+        
         run_callbacks :start do
           subscriber.run do |socket|
             message = socket.recv
