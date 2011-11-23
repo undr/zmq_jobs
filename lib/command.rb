@@ -81,7 +81,7 @@ module ZmqJobs
           :ontop => !daemonize
         }
       ) do
-        ZmqJobs.logger = Logger.new(File.expand_path("../../#{@log_dir}/#{daemon_name}.log", __FILE__)) if daemonize
+        ZmqJobs.logger = Logger.new(File.expand_path("#{@log_dir}/#{daemon_name}.log", execute_dir)) if daemonize
         daemon_class(daemon_name).new(config).start
       end
       true
