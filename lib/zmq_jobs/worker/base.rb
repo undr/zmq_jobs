@@ -15,6 +15,9 @@ module ZmqJobs
         end
         
         def start options
+          logger.debug 'Debug mode' if debug?
+          logger.debug 'Worker is starting' if debug?
+          
           new(options).start
         end
       end
@@ -46,7 +49,7 @@ module ZmqJobs
       
       def execute_job message
         run_callbacks :execute do
-          logger.info 'Executing message...' if debug?
+          logger.debug 'Executing message...' if debug?
           execute(message)
         end
       rescue => e
