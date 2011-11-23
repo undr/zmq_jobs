@@ -20,6 +20,7 @@ module ZmqJobs
       end
       
       def initialize options={}
+        @debug = options.delete('debug') || false
         @options = options
       end
       
@@ -45,6 +46,7 @@ module ZmqJobs
       
       def execute_job message
         run_callbacks :execute do
+          logger.info 'Executing message...' if debug?
           execute(message)
         end
       rescue => e
@@ -58,6 +60,10 @@ module ZmqJobs
       
       def logger
         ::ZmqJobs.logger
+      end
+      
+      def debug?
+        !!@debug
       end
       
       def format_exception_message exception

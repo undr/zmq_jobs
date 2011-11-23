@@ -20,6 +20,7 @@ module ZmqJobs
     def initialize(args)
       raise 'You can not create instance of abstract class' if self.class == Command
       @daemonize = false
+      @debug = false
       @monitor = false
       @execute_dir = Dir.pwd
       @log_dir = './log'
@@ -58,6 +59,9 @@ module ZmqJobs
         opts.on('-d', '--daemonize', "Daemonize the #{type} process") do
           @daemonize = true
         end
+        opts.on('-D', '--debug', "Debug mode") do
+          @debug = true
+        end
         opts.on('-c CONFIG', '--config CONFIG', "Use config file, default: #{config_file}") do |config|
           @config_file = config
         end
@@ -81,6 +85,7 @@ module ZmqJobs
           :ontop => !daemonize
         }
       ) do
+        config['debug'] = true if @debug
         ZmqJobs.logger = Logger.new(File.expand_path("#{@log_dir}/#{daemon_name}.log", execute_dir)) if daemonize
         daemon_class(daemon_name).new(config).start
       end
