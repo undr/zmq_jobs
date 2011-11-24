@@ -53,7 +53,7 @@ module ZmqJobs
         end
       rescue => e
         logger.warn format_exception_message(e)
-        raise e
+        #raise e
       end
       
       def subscriber
