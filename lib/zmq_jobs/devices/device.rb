@@ -61,5 +61,12 @@ module ZmqJobs
     def logger
       ::ZmqJobs.logger
     end
+    
+    def format_exception_message exception
+<<-MESSAGE
+Execution error: #{exception} - #{exception.message}
+  #{exception.backtrace[0..10].join("\n  ")}
+MESSAGE
+    end
   end
 end

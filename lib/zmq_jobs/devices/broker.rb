@@ -3,6 +3,9 @@ module ZmqJobs
     protected
     def start_device
       @device = ZMQ::Device.new(ZMQ::FORWARDER, frontend.socket, backend.socket)
+    rescue => e
+      logger.warn format_exception_message(e)
+      raise e
     end
     
     def create_frontend
