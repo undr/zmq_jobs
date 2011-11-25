@@ -24,7 +24,7 @@ module ZmqJobs
       @monitor = false
       @execute_dir = Dir.pwd
       @log_dir = './log'
-      @pid_dir = './tmp'
+      @pid_dir = './pids'
       @config_file = './config/zmq_jobs.yml'
       @options = read_config_file
       
@@ -78,6 +78,7 @@ module ZmqJobs
       Daemons.run_proc(
         daemon_name, 
         {
+          :dir => @pid_dir,
           :multiple => false,
           :dir_mode => :normal,
           :monitor => monitor,
@@ -153,9 +154,9 @@ module ZmqJobs
         opts.on('-w', '--workers LIST', 'Workers which have to run.') do |workers|
           @workers = workers.split(',')
         end
-        opts.on('-r REQUIRE_FILE', '--require REQUIRE_FILE', "Require this file before start daemon") do |require_file|
-          @require = require_file
-        end
+#        opts.on('-r REQUIRE_FILE', '--require REQUIRE_FILE', "Require this file before start daemon") do |require_file|
+#          @require = require_file
+#        end
       end
     end
     
