@@ -11,7 +11,6 @@ module ZmqJobs
         @options = build_default_options.merge(options)
         @socket = @context.socket(ZMQ::PUB)
         @running = false
-        @delay = self.options['delay'] || 2
       end
       
       def create_link url
@@ -36,7 +35,6 @@ module ZmqJobs
         loop do
           yield self
           break unless running?
-          sleep @delay
         end
         
         self
