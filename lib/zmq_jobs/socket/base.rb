@@ -63,7 +63,7 @@ module ZmqJobs
       
       def recv
         message = ''
-        rc = socket.recv_string(message, ZMQ::NOBLOCK)
+        rc = socket.recv_string(message)
         return message if ZMQ::Util.resultcode_ok?(rc)
       end
       

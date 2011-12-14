@@ -34,7 +34,6 @@ module ZmqJobs
           subscriber.run do |socket|
             message = socket.recv
             execute_job message if message
-            sleep 1
           end
         end
       end
