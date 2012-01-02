@@ -1,9 +1,7 @@
 require 'spec_helper.rb'
 
-class TestWorker
-end
-class AnotherTestWorker
-end
+TestWorker = Class.new(ZmqJobs::Worker::Base) unless defined?(TestWorker)
+AnotherTestWorker = Class.new(ZmqJobs::Worker::Base) unless defined?(AnotherTestWorker)
 
 describe ZmqJobs::Command do
   describe '.new' do

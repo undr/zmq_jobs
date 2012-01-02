@@ -1,6 +1,6 @@
 require 'spec_helper.rb'
 
-TestWorker = Class.new(ZmqJobs::Worker::Base)
+TestWorker = Class.new(ZmqJobs::Worker::Base) unless defined?(TestWorker)
 ZmqJobs.logger = Logger.new('/dev/null')
 describe ZmqJobs::Worker::Base do
   describe '.cmd' do
