@@ -210,4 +210,15 @@ describe ZmqJobs::WorkerCommand do
       specify{command.start}
     end
   end
+  
+  describe '#daemon_classname' do
+    let(:args){['start']}
+    let(:options){{'workers' => {
+      'test_worker' => {},
+      'test_worker_clone' => {'classname' => 'TestWorker'}
+    }}}
+    
+    specify{command.send(:daemon_classname, 'test_worker').should == 'TestWorker'}
+    specify{command.send(:daemon_classname, 'test_worker_clone').should == 'TestWorker'}
+  end
 end

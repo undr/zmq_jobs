@@ -168,7 +168,7 @@ module ZmqJobs
     end
     
     def daemon_classname name
-      ActiveSupport::Inflector.camelize(name, true)
+      daemon_config(name)['classname'] || ActiveSupport::Inflector.camelize(name, true)
     end
     
     def all_workers
