@@ -28,7 +28,9 @@ module ZmqJobs
         trap('TERM'){stop;Process.exit}
         trap('INT'){stop;Process.exit}
         logger.info "#{self.class} is starting ..."
-        logger.debug 'Debug mode' if debug?
+        debug_execute do
+          logger.debug 'Debug mode'
+        end
         
         run_callbacks :start do
           subscriber.run do |socket|
@@ -48,6 +50,7 @@ module ZmqJobs
       
       def execute_job message
         run_callbacks :execute do
+          time = nil
           debug_execute do
             @idle_time ||= Time.now
             time = Time.now
