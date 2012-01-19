@@ -48,10 +48,17 @@ module ZmqJobs
       
       def execute_job message
         run_callbacks :execute do
-          time = Time.now
-          logger.debug 'Start execute message...' if debug?
+          debug_execute do
+            @idle_time ||= Time.now
+            time = Time.now
+            logger.debug "Start execute message (Idle time: #{time - @idle_time}sec)..."
+          end
           execute(message)
-          logger.debug "Stop execute message...Duration: #{Time.now - time}sec." if debug?
+          debug_execute do
+            # TODO: Size: #{message.size.kilobytes}Kb
+            logger.debug "Stop execute message...Duration: #{Time.now - time}sec."
+            @idle_time = Time.now
+          end
         end
       rescue => e
         logger.warn format_exception_message(e)
@@ -68,6 +75,10 @@ module ZmqJobs
       
       def debug?
         !!@debug
+      end
+      
+      def debug_execute
+        yield if debug?
       end
       
       def format_exception_message exception
