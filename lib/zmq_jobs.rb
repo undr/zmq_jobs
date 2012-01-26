@@ -43,6 +43,12 @@ module ZmqJobs
     end
   end
   
+  def env
+    return Rails.env if defined?(Rails)
+    return Sinatra::Base.environment.to_s if defined?(Sinatra)
+    ENV["RACK_ENV"] || ENV["ZMQ_ENV"] || 'development'
+  end
+  
   protected
   def default_logger
     defined?(Rails) && Rails.respond_to?(:logger) ? Rails.logger : ::Logger.new($stdout)

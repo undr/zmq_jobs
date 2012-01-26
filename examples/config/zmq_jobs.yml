@@ -1,18 +1,23 @@
-workers_dir: ./workers
-workers:
-  default:
+development: &default
+  workers_dir: ./workers
+  workers:
+    default:
+      iothreads: 1
+      hosts: ['127.0.0.1']
+      ports: [2203]
+    test_worker:
+      iothreads: 1
+      hosts: ['127.0.0.1']
+      ports: [2203]
+  broker:
     iothreads: 1
-    hosts: ['127.0.0.1']
-    ports: [2203]
-  test_worker:
-    iothreads: 1
-    hosts: ['127.0.0.1']
-    ports: [2203]
-broker:
-  iothreads: 1
-  frontend:
-    hosts: ['127.0.0.1']
-    ports: [<%= (2200..2202).to_a.join(', ') %>]
-  backend:
-    hosts: '127.0.0.1'
-    ports: 2203
+    frontend:
+      hosts: ['127.0.0.1']
+      ports: [<%= (2200..2202).to_a.join(', ') %>]
+    backend:
+      hosts: '127.0.0.1'
+      ports: 2203
+test:
+  <<: *default
+production:
+  <<: *default

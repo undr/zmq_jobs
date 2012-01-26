@@ -26,7 +26,7 @@ module ZmqJobs
       @log_dir = './log'
       @pid_dir = './pids'
       @config_file = './config/zmq_jobs.yml'
-      @options = read_config_file
+      @options = environment_options
       
       if args.empty? || !ALLOW_COMMANDS.include?(args.first)
         puts opts_parser
@@ -100,6 +100,10 @@ module ZmqJobs
       ) unless File.exists?(full_path)
       
       YAML.load(ERB.new(File.new(full_path).read).result)
+    end
+    
+    def environment_options
+      read_config_file[ZmqJobs.env]
     end
     
     def daemon_config name

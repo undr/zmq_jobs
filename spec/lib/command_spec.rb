@@ -25,7 +25,7 @@ shared_examples_for 'initialization' do
     specify{command.monitor.should be_false}
     specify{command.config_file.should == './config/zmq_jobs.yml'}
     specify{command.execute_dir.should == Dir.pwd}
-    specify{command.options.should == options}
+    specify{command.options.should == options['test']}
     specify{command.type.should == type}
     specify{command.daemon_class(daemon).should == classname}
     specify{command.send(:daemon_config, daemon).should == daemon_options}
@@ -56,6 +56,32 @@ shared_examples_for 'initialization' do
   end
 end
 
+shared_examples_for 'environment_options' do
+  ['development', 'production', 'beta', 'test'].each do |env|
+    context "with #{env} environment" do
+      before do
+        ENV['ZMQ_ENV'] = env
+      end
+      
+      after do
+        ENV['ZMQ_ENV'] = 'test'
+      end
+      
+      let(:args){['start']}
+      let(:options) do
+        {
+          'development' => {:key => 'development'},
+          'production' => {:key => 'production'},
+          'beta' => {:key => 'beta'},
+          'test' => {:key => 'test'}
+        }
+      end
+      
+      specify{command.send(:environment_options).should == {:key => env}}
+    end
+  end
+end
+
 shared_examples_for 'daemonization' do
   let(:args){['start']}
   let(:daemon_options){{:key => :value}}
@@ -65,13 +91,14 @@ end
 
 describe ZmqJobs::BrokerCommand do
   before do
+    ENV['ZMQ_ENV'] = 'test'
     ZmqJobs::BrokerCommand.any_instance.stub(:read_config_file => options)
   end
   
   let(:command){ZmqJobs::BrokerCommand.new(args)}
   let(:type){'broker'}
   let(:daemon){type}
-  let(:options){{daemon => daemon_options}}
+  let(:options){{'test' => {daemon => daemon_options}}}
   
   describe '.new' do
     before do
@@ -81,6 +108,10 @@ describe ZmqJobs::BrokerCommand do
     let(:classname){ZmqJobs::Broker}
     
     it_behaves_like 'initialization'
+  end
+  
+  describe '#environment_options' do
+    it_behaves_like 'environment_options'
   end
   
   describe '#start' do
@@ -94,13 +125,14 @@ end
 
 describe ZmqJobs::BalancerCommand do
   before do
+    ENV['ZMQ_ENV'] = 'test'
     ZmqJobs::BalancerCommand.any_instance.stub(:read_config_file => options)
   end
   
   let(:command){ZmqJobs::BalancerCommand.new(args)}
   let(:type){'balancer'}
   let(:daemon){type}
-  let(:options){{daemon => daemon_options}}
+  let(:options){{'test' => {daemon => daemon_options}}}
   
   describe '.new' do
     before do
@@ -110,6 +142,10 @@ describe ZmqJobs::BalancerCommand do
     let(:classname){ZmqJobs::Balancer}
     
     it_behaves_like 'initialization'
+  end
+  
+  describe '#environment_options' do
+    it_behaves_like 'environment_options'
   end
   
   describe '#start' do
@@ -123,6 +159,7 @@ end
 
 describe ZmqJobs::WorkerCommand do
   before do
+    ENV['ZMQ_ENV'] = 'test'
     ZmqJobs::WorkerCommand.any_instance.stub(:read_config_file => options)
   end
   
@@ -136,7 +173,7 @@ describe ZmqJobs::WorkerCommand do
     
     let(:daemon){'test_worker'}
     let(:classname){TestWorker}
-    let(:options){{'workers' => {daemon => daemon_options}}}
+    let(:options){{'test' => {'workers' => {daemon => daemon_options}}}}
     
     it_behaves_like 'initialization'
     
@@ -171,6 +208,10 @@ describe ZmqJobs::WorkerCommand do
     end
   end
   
+  describe '#environment_options' do
+    it_behaves_like 'environment_options'
+  end
+  
   describe '#start' do
     before do
       ZmqJobs::WorkerCommand.any_instance.stub(:workers_to_start => workers)
@@ -182,7 +223,7 @@ describe ZmqJobs::WorkerCommand do
     
     context 'daemonization for one worker' do
       let(:workers){%W{test_worker}}
-      let(:options){{'workers' => {workers.first => first_daemon_options}}}
+      let(:options){{'test' => {'workers' => {workers.first => first_daemon_options}}}}
       
       before do
         command.should_receive(:start_daemon).
@@ -195,10 +236,10 @@ describe ZmqJobs::WorkerCommand do
     context 'daemonization for many workers' do
       let(:workers){%W{test_worker another_test_worker}}
       let(:last_daemon_options){{:key => :last}}
-      let(:options){{'workers' => {
+      let(:options){{'test' => {'workers' => {
         workers.first => first_daemon_options,
         workers.last => last_daemon_options
-      }}}
+      }}}}
       
       before do
         command.should_receive(:start_daemon).
@@ -213,10 +254,10 @@ describe ZmqJobs::WorkerCommand do
   
   describe '#daemon_classname' do
     let(:args){['start']}
-    let(:options){{'workers' => {
+    let(:options){{'test' => {'workers' => {
       'test_worker' => {},
       'test_worker_clone' => {'classname' => 'TestWorker'}
-    }}}
+    }}}}
     
     specify{command.send(:daemon_classname, 'test_worker').should == 'TestWorker'}
     specify{command.send(:daemon_classname, 'test_worker_clone').should == 'TestWorker'}
