@@ -1,5 +1,5 @@
 development: &default
-  workers_dir: ./workers
+  workers_dir: ./examples/workers
   workers:
     default:
       iothreads: 1
@@ -8,7 +8,7 @@ development: &default
     test_worker:
       iothreads: 1
       hosts: ['127.0.0.1']
-      ports: [2203]
+      ports: [3131]
   broker:
     iothreads: 1
     frontend:
