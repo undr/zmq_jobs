@@ -2,8 +2,11 @@ module ZmqJobs
   module Worker
     class Base
       include ActiveSupport::Callbacks
+      
       define_callbacks :start, :stop, :execute
       attr_reader :options
+      set_callback :execute, :around, :metric_behaviour
+      
       class << self
         def cmd args
           count = args[2].to_i || 0
@@ -21,16 +24,16 @@ module ZmqJobs
       
       def initialize options={}
         @debug = options.delete('debug') || false
+        @profile = options.delete('profile') || false
         @options = options
+        @metric = Metric.new(options['metric'] || {}) if profile?
       end
       
       def start
         trap('TERM'){stop;Process.exit}
         trap('INT'){stop;Process.exit}
         logger.info "#{self.class} is starting ..."
-        debug_execute do
-          logger.debug 'Debug mode'
-        end
+        logger.debug 'Debug mode' if debug?
         
         run_callbacks :start do
           subscriber.run do |socket|
@@ -49,20 +52,13 @@ module ZmqJobs
       end
       
       def execute_job message
+        @message = message
+        
         run_callbacks :execute do
-          time = nil
-          debug_execute do
-            @idle_time ||= Time.now
-            time = Time.now
-            logger.debug "Start execute message (Idle time: #{time - @idle_time}sec)..."
-          end
           execute(message)
-          debug_execute do
-            # TODO: Size: #{message.size.kilobytes}Kb
-            logger.debug "Stop execute message...Duration: #{Time.now - time}sec."
-            @idle_time = Time.now
-          end
         end
+        
+        @message = nil
       rescue => e
         logger.warn format_exception_message(e)
         #raise e
@@ -80,8 +76,48 @@ module ZmqJobs
         !!@debug
       end
       
-      def debug_execute
-        yield if debug?
+      def execute_if condition
+        yield if condition
+      end
+      
+      def profile?
+        !!@profile
+      end
+      
+      def metric_behaviour
+        if profile?
+          idle_time = @metric.timer(:idle).stop!
+          @metric.timer(:execute).start!
+          @metric.counter(:message_size) << @message.size
+        end
+        
+        if debug?
+          logger.debug("-" * 10)
+          logger.debug "Start execute message..."
+          if profile?
+            logger.debug "Idle time: #{idle_time.humanize(4)} sec."
+            logger.debug "Message size: #{@message.size.humanize} Byte"
+          end
+        end
+        
+        yield
+        
+        if profile?
+          execute_time = @metric.timer(:execute).stop!
+          @metric.timer(:idle).start!
+        end
+        
+        if debug?
+          if profile?
+            logger.debug "Duration: #{execute_time} sec."
+          end
+          logger.debug "Stop execute message"
+          logger.debug("-" * 10)
+        end
+        
+        if profile? && @metric.store_time?
+          @metric.store(self)
+        end
       end
       
       def format_exception_message exception

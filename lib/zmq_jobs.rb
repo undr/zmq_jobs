@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'bundler'
-Bundler.setup :default, (ENV['RACK_ENV'] || 'development')
+Bundler.require :default, (ENV['RACK_ENV'] || 'development')
 require 'yaml'
 require 'active_support'
 require 'active_support/core_ext/hash/keys'
@@ -21,6 +21,7 @@ module ZmqJobs
     extend ActiveSupport::Autoload
     
     autoload :Base
+    autoload :Metric
   end
     
   module Socket
@@ -29,6 +30,12 @@ module ZmqJobs
     autoload :Base
     autoload :Pub
     autoload :Sub
+  end
+  
+  module CoreExt
+    extend ActiveSupport::Autoload
+    
+    autoload :Number
   end
   
   def logger
@@ -58,3 +65,8 @@ end
 require 'command'
 
 require 'rails/railties' if defined?(Rails)
+
+
+class Numeric
+  include ZmqJobs::CoreExt::Number
+end

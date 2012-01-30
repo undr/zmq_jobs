@@ -6,6 +6,8 @@ development: &default
       hosts: ['127.0.0.1']
       ports: [2203]
     test_worker:
+      metric:
+        period: 10
       iothreads: 1
       hosts: ['127.0.0.1']
       ports: [3131]

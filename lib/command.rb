@@ -21,6 +21,7 @@ module ZmqJobs
       raise 'You can not create instance of abstract class' if self.class == Command
       @daemonize = false
       @debug = false
+      @profile = false
       @monitor = false
       @execute_dir = Dir.pwd
       @log_dir = './log'
@@ -62,6 +63,9 @@ module ZmqJobs
         opts.on('-D', '--debug', "Debug mode") do
           @debug = true
         end
+        opts.on('-p', '--profile', "Profile mode") do
+          @profile = true
+        end
         opts.on('-c CONFIG', '--config CONFIG', "Use config file, default: #{config_file}") do |config|
           @config_file = config
         end
@@ -87,6 +91,7 @@ module ZmqJobs
         }
       ) do
         config['debug'] = true if @debug
+        config['profile'] = true if @profile
         ZmqJobs.logger = Logger.new(File.expand_path("#{@log_dir}/#{daemon_name}.log", execute_dir)) if daemonize
         daemon_class(daemon_name).new(config).start
       end
