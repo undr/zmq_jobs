@@ -9,11 +9,11 @@ end
 
 publisher = ZmqJobs::Socket::Pub.new(
   'hosts' => '127.0.0.1',
-  'ports' => 2200
+  'ports' => 3131
 )
 publisher.run do |socket|
   msg = message.call(index)
-  socket.send_string(msg)
+  socket.send(msg)
   puts "Send message: #{msg}"
   index += 1
   sleep 2
