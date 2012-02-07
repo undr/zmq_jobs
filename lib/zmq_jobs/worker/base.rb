@@ -6,6 +6,7 @@ module ZmqJobs
       define_callbacks :start, :stop, :execute
       attr_reader :options
       set_callback :execute, :around, :metric_behaviour
+      set_callback :stop, :before, :metric_store, :if => lambda{profile?}
       
       class << self
         def cmd args
@@ -116,8 +117,13 @@ module ZmqJobs
         end
         
         if profile? && @metric.store_time?
-          @metric.store(self)
+          logger.debug 'Store metrics' if debug?
+          metric_store
         end
+      end
+      
+      def metric_store
+        @metric.store(self)
       end
       
       def format_exception_message exception
