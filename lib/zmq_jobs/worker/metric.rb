@@ -76,11 +76,13 @@ module ZmqJobs
       end
       
       def timer name
+        name = name.to_sym
         @values[name] ||= Timer.new
         @values[name]
       end
       
       def counter name
+        name = name.to_sym
         @values[name] ||= Value.new
         @values[name]
       end
