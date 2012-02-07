@@ -54,6 +54,12 @@ module ZmqJobs
             0
           end
         end
+        
+        def measure
+          start!
+          yield
+          stop!
+        end
       end
       
       attr_reader :options
