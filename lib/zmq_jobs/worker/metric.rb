@@ -9,6 +9,7 @@ module ZmqJobs
         end
         
         def average
+          return 0 if count == 0
           @sum / count
         end
         
