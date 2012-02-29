@@ -56,13 +56,14 @@ module ZmqJobs
         @message = message
         
         run_callbacks :execute do
-          execute(message)
+          begin
+            execute(message)
+          rescue => e
+            error_callback(e)
+            #raise e
+          end
         end
-        
         @message = nil
-      rescue => e
-        logger.warn format_exception_message(e)
-        #raise e
       end
       
       def subscriber
@@ -75,10 +76,6 @@ module ZmqJobs
       
       def debug?
         !!@debug
-      end
-      
-      def execute_if condition
-        yield if condition
       end
       
       def profile?
@@ -103,6 +100,7 @@ module ZmqJobs
         
         yield
         
+      ensure
         if profile?
           execute_time = @metric.timer(:execute).stop!
           @metric.timer(:idle).start!
@@ -124,6 +122,10 @@ module ZmqJobs
       
       def metric_store
         @metric.store(self)
+      end
+      
+      def error_callback exception
+        logger.warn format_exception_message(exception)
       end
       
       def format_exception_message exception
