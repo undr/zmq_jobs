@@ -56,6 +56,10 @@ module ZmqJobs
     ENV["RACK_ENV"] || ENV["ZMQ_ENV"] || 'development'
   end
   
+  def root
+    @root ||= Pathname.new(File.expand_path('../../', __FILE__))
+  end
+  
   protected
   def default_logger
     defined?(Rails) && Rails.respond_to?(:logger) ? Rails.logger : ::Logger.new($stdout)
