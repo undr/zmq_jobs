@@ -57,7 +57,7 @@ module ZmqJobs
   end
   
   def root
-    @root ||= Pathname.new(File.expand_path('../../', __FILE__))
+    @root ||= Pathname.new(File.expand_path('.'))
   end
   
   protected
