@@ -63,7 +63,7 @@ module ZmqJobs
   end
   
   def config config_file='./config/zmq_jobs.yml'
-    read_config_file(config_file)[ZmqJobs.env]
+    @config ||= read_config_file(config_file)[ZmqJobs.env]
   end
   
   def read_config_file config_file
