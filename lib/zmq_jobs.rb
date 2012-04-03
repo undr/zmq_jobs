@@ -6,6 +6,8 @@ require 'active_support'
 require 'active_support/core_ext/hash/keys'
 require 'ffi-rzmq'
 require 'logger'
+require 'yaml'
+require 'erb'
 
 module ZmqJobs
   extend self
@@ -57,7 +59,20 @@ module ZmqJobs
   end
   
   def root
-    @root ||= Pathname.new(File.expand_path('.'))
+    @root ||= Pathname.new(Dir.pwd)
+  end
+  
+  def config config_file='./config/zmq_jobs.yml'
+    read_config_file(config_file)[ZmqJobs.env]
+  end
+  
+  def read_config_file config_file
+    full_path = ZmqJobs.root.join(config_file) # File.expand_path(config_file, execute_dir)
+    raise(
+      "Config file not found in '#{full_path}'. Create config file or define its with -c option"
+    ) unless File.exists?(full_path)
+    
+    YAML.load(ERB.new(File.new(full_path).read).result)
   end
   
   protected

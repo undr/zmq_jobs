@@ -1,7 +1,5 @@
 require 'optparse'
 require 'daemons'
-require 'yaml'
-require 'erb'
 
 module ZmqJobs
   class Command
@@ -27,7 +25,6 @@ module ZmqJobs
       @log_dir = './log'
       @pid_dir = './pids'
       @config_file = './config/zmq_jobs.yml'
-      @options = environment_options
       
       if args.empty? || !ALLOW_COMMANDS.include?(args.first)
         puts opts_parser
@@ -35,6 +32,7 @@ module ZmqJobs
       else
         @args = opts_parser.parse!(args)
       end
+      @options = ZmqJobs.config(!config_file)
     end
     
     def start
@@ -96,19 +94,6 @@ module ZmqJobs
         daemon_class(daemon_name).new(config).start
       end
       true
-    end
-    
-    def read_config_file
-      full_path = File.expand_path(config_file, execute_dir)
-      raise(
-        "Config file not found in '#{full_path}'. Create config file or define its with -c option"
-      ) unless File.exists?(full_path)
-      
-      YAML.load(ERB.new(File.new(full_path).read).result)
-    end
-    
-    def environment_options
-      read_config_file[ZmqJobs.env]
     end
     
     def daemon_config name
