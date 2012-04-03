@@ -32,7 +32,7 @@ module ZmqJobs
       else
         @args = opts_parser.parse!(args)
       end
-      @options = ZmqJobs.config(!config_file)
+      @options = ZmqJobs.config(config_file)
     end
     
     def start
