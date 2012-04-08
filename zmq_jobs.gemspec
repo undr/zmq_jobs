@@ -17,8 +17,9 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rspec", ">= 2"
   s.add_development_dependency "yard", "~> 0.6.0"
   s.add_development_dependency "ruby-debug19"
+  s.add_development_dependency "pry"
   
-  s.add_dependency "bundler", "~> 1.0.0"
+  s.add_dependency "bundler"
   s.add_dependency "rake"
   s.add_dependency "ffi"
   s.add_dependency "ffi-rzmq"
